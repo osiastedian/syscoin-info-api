@@ -13,7 +13,7 @@ ENV SYSCOIN_VERSION=4.3.99
 ENV SYSCOIN_DATA=/home/syscoin/.syscoin
 ENV PATH=/opt/syscoin-${SYSCOIN_VERSION}/bin:$PATH
 
-RUN curl -SLO https://syscoincore.org/bin/syscoin-core-${SYSCOIN_VERSION}/SHA256SUMS.asc | apt-key add -
+RUN curl -sS https://syscoincore.org/bin/syscoin-core-${SYSCOIN_VERSION}/SHA256SUMS.asc | apt-key add -
 
 RUN set -ex \
   && if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then export TARGETPLATFORM=x86_64-linux-gnu; fi \
