@@ -50,6 +50,11 @@ app.get("/totalsupply", async (req, res) => {
   res.send(totalSupply);
 });
 
+app.get("/health", async (req, res) => {
+  const totalSupply = await getSupply();
+  res.send("OK");
+});
+
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
