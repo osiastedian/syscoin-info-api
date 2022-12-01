@@ -51,7 +51,7 @@ app.get("/totalsupply", async (req, res) => {
 });
 
 app.get("/health", async (req, res) => {
-  const totalSupply = await getSupply();
+  console.log("Health check", new Date());
   res.send("OK");
 });
 
