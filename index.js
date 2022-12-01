@@ -2,8 +2,10 @@ const SyscoinRpcClient = require("@syscoin/syscoin-js").SyscoinRpcClient;
 const rpcServices = require("@syscoin/syscoin-js").rpcServices;
 
 const client = new SyscoinRpcClient({
-  host: "35.89.205.137",
-  rpcPort: 8368,
+  host: process.env.SYSCOIN_CORE_RPC_HOST,
+  rpcPort: process.env.SYSCOIN_CORE_RPC_PORT,
+  password: process.env.SYSCOIN_CORE_RPC_PASSWORD,
+  username: process.env.SYSCOIN_CORE_RPC_USERNAME,
   useSsl: true,
 });
 const axios = require("axios");
@@ -43,8 +45,9 @@ const getSupply = async () => {
   return cmcSupply;
 };
 
-app.get("/totalsupply", (req, res) => {
-  res.send(1000);
+app.get("/totalsupply", async (req, res) => {
+  const totalSupply = await getSupply();
+  res.send(totalSupply);
 });
 
 app.listen(port, () => {

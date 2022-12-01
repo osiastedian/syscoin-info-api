@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build the Docker image
-        run: docker build . --file ./syscoin-core/Dockerfile --tag syscointed/syscoin-core:$(date +%s)
+        run: docker build . --file ./Dockerfile --tag syscointed/syscoin-info-api:$(date +%s)
       - name: Log into registry ${{ env.REGISTRY }}
         if: github.event_name != 'pull_request'
         uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
