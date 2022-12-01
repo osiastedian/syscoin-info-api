@@ -6,7 +6,6 @@ const client = new SyscoinRpcClient({
   rpcPort: process.env.SYSCOIN_CORE_RPC_PORT,
   password: process.env.SYSCOIN_CORE_RPC_PASSWORD,
   username: process.env.SYSCOIN_CORE_RPC_USERNAME,
-  useSsl: true,
 });
 const axios = require("axios");
 
