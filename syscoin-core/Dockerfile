@@ -4,7 +4,7 @@ LABEL maintainer.0="Jagdeep Sidhu (@realSidhuJag)"
 
 RUN useradd -r syscoin \
   && apt-get update -y \
-  && apt-get install -y curl gnupg gosu \
+  && apt-get install -y curl gnupg gosu ca-certificates \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
@@ -27,7 +27,7 @@ RUN set -ex \
       gpg --batch --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys "$key" ; \
     done \
   && curl -SLO https://syscoincore.org/bin/syscoin-core-${SYSCOIN_VERSION}/syscoin-${SYSCOIN_VERSION}-${TARGETPLATFORM}.tar.gz \
-  && curl -SLO https://syscoincore.org/bin/syscoin-core-${SYSCOIN_VERSION}/SHA256SUMS.asc | apt-key add - \
+  && curl -SLO https://syscoincore.org/bin/syscoin-core-${SYSCOIN_VERSION}/SHA256SUMS.asc \
   && gpg --verify SHA256SUMS.asc \
   && grep " syscoin-${SYSCOIN_VERSION}-${TARGETPLATFORM}.tar.gz" SHA256SUMS.asc | sha256sum -c - \
   && tar -xzf *.tar.gz -C /opt \
