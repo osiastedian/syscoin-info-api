@@ -4,7 +4,7 @@ LABEL maintainer.0="Jagdeep Sidhu (@realSidhuJag)"
 
 RUN useradd -r syscoin \
   && apt-get update -y \
-  && apt-get install -y curl gnupg gosu ca-certificates tee \
+  && apt-get install -y curl gnupg gosu ca-certificates \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
@@ -13,7 +13,7 @@ ENV SYSCOIN_VERSION=4.3.99
 ENV SYSCOIN_DATA=/home/syscoin/.syscoin
 ENV PATH=/opt/syscoin-${SYSCOIN_VERSION}/bin:$PATH
 
-RUN curl -sS https://syscoincore.org/bin/syscoin-core-${SYSCOIN_VERSION}/SHA256SUMS.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/syscoin-core.gpg
+RUN curl -sS https://syscoincore.org/bin/syscoin-core-${SYSCOIN_VERSION}/SHA256SUMS.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/syscoin-core.gpg
 
 RUN set -ex \
   && if [ "${TARGETPLATFORM}" = "linux/amd64" ]; then export TARGETPLATFORM=x86_64-linux-gnu; fi \
