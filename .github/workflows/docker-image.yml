@@ -26,6 +26,6 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: ${{ github.event_name != 'pull_request' }}
-          tags: syscointed/syscoin-info-api:$(date +%s)
+          tags: syscointed/syscoin-info-api:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
