@@ -27,15 +27,17 @@ const getSupply = async () => {
     .get("https://explorer.syscoin.org/api?module=stats&action=coinsupply")
     .catch((err) => console.log(err));
   let nevmSupply = explorerData.data;
-  console.log({ nevmSupply, callRpc: client });
-
   // Get SYS NEVM Contract Supply
   let nevmAdd = await axios
     .get(
       "https://explorer.syscoin.org/api?module=account&action=balance&address=0xA738a563F9ecb55e0b2245D1e9E380f0fE455ea1"
     )
     .catch((err) => console.log(err));
+
   let nevmAddContractSupply = nevmAdd.data.result;
+
+  console.log({ nevmSupply, supplyInfo, sysxSupply, nevmAddContractSupply });
+
   let largeNumber = 1000000000000000000;
   let nevmAddContractFinal = nevmAddContractSupply / largeNumber;
 
