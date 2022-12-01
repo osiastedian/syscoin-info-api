@@ -17,16 +17,19 @@ const getSupply = async () => {
   // Get UTXO Coin Supply
   let supplyInfo = await rpcServices(client.callRpc).getTxOutSetInfo().call();
   let utxoSupply = supplyInfo.total_amount;
+  console.log({ utxoSupply });
 
   // Get SYSX Supply
   let sysAsset = `123456`;
   let assetInfo = await rpcServices(client.callRpc).assetInfo(sysAsset).call();
   let sysxSupply = assetInfo.total_supply;
+  console.log({ sysxSupply });
 
   let explorerData = await axios
     .get("https://explorer.syscoin.org/api?module=stats&action=coinsupply")
     .catch((err) => console.log(err));
   let nevmSupply = explorerData.data;
+  console.log({ nevmSupply });
   // Get SYS NEVM Contract Supply
   let nevmAdd = await axios
     .get(
@@ -36,7 +39,7 @@ const getSupply = async () => {
 
   let nevmAddContractSupply = nevmAdd.data.result;
 
-  console.log({ nevmSupply, supplyInfo, sysxSupply, nevmAddContractSupply });
+  console.log({ nevmAddContractSupply });
 
   let largeNumber = 1000000000000000000;
   let nevmAddContractFinal = nevmAddContractSupply / largeNumber;
