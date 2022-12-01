@@ -1,0 +1,14 @@
+version: "3.7"
+
+services:
+  api:
+    build: ./
+    ports:
+      - 3000:300
+    depends_on:
+      - syscoind
+
+  syscoind:
+    build: ./syscoin-core
+    environment:
+      TARGETPLATFORM: linux/arm/v7
