@@ -15,12 +15,8 @@ const app = express();
 const port = 3000;
 
 const getSupply = async () => {
-  // Get UTXO Coin Supply
-  const supplyInfo = await rpcServices(client.callRpc).getTxOutSetInfo().call();
-  const utxoSupply = supplyInfo.total_amount;
-  console.log({ utxoSupply });
-
-  const [explorerData, nevmAdd] = await Promise.all([
+  const [supplyInfo, explorerData, nevmAdd] = await Promise.all([
+    rpcServices(client.callRpc).getTxOutSetInfo().call(),
     fetch(
       "https://explorer.syscoin.org/api?module=stats&action=coinsupply"
     ).then((resp) => resp.json()),
@@ -28,19 +24,14 @@ const getSupply = async () => {
       "https://explorer.syscoin.org/api?module=account&action=balance&address=0xA738a563F9ecb55e0b2245D1e9E380f0fE455ea1"
     ).then((resp) => resp.json()),
   ]);
+  const utxoSupply = supplyInfo.total_amount;
   const nevmSupply = explorerData;
-
-  console.log({ nevmSupply, nevmAdd });
-
   const nevmAddContractSupply = nevmAdd.result;
-
-  console.log({ nevmAddContractSupply });
-
   const largeNumber = 1000000000000000000;
-  const nevmAddContractFinal = nevmAddContractSupply / largeNumber;
+  const nevmContract = nevmAddContractSupply / largeNumber;
 
-  // Get total NEVM + UTXO Supply
-  const cmcSupply = nevmSupply - nevmAddContractFinal + utxoSupply;
+  console.log({ utxoSupply, nevmSupply, nevmContract });
+  const cmcSupply = nevmSupply - nevmContract + utxoSupply;
   return cmcSupply;
 };
 
