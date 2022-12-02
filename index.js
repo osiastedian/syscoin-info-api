@@ -1,3 +1,4 @@
+require("dotenv").config();
 const SyscoinRpcClient = require("@syscoin/syscoin-js").SyscoinRpcClient;
 const rpcServices = require("@syscoin/syscoin-js").rpcServices;
 
@@ -7,45 +8,50 @@ const client = new SyscoinRpcClient({
   password: process.env.SYSCOIN_CORE_RPC_PASSWORD,
   username: process.env.SYSCOIN_CORE_RPC_USERNAME,
 });
-const axios = require("axios");
 
+const fetch = require("node-fetch");
 const express = require("express");
 const app = express();
 const port = 3000;
 
 const getSupply = async () => {
   // Get UTXO Coin Supply
-  let supplyInfo = await rpcServices(client.callRpc).getTxOutSetInfo().call();
-  let utxoSupply = supplyInfo.total_amount;
+  const supplyInfo = await rpcServices(client.callRpc).getTxOutSetInfo().call();
+  const utxoSupply = supplyInfo.total_amount;
   console.log({ utxoSupply });
 
-  let explorerData = await axios
-    .get("https://explorer.syscoin.org/api?module=stats&action=coinsupply")
-    .catch((err) => console.log(err));
-  let nevmSupply = explorerData.data;
-  console.log({ nevmSupply });
-  // Get SYS NEVM Contract Supply
-  let nevmAdd = await axios
-    .get(
+  const [explorerData, nevmAdd] = await Promise.all([
+    fetch(
+      "https://explorer.syscoin.org/api?module=stats&action=coinsupply"
+    ).then((resp) => resp.json()),
+    fetch(
       "https://explorer.syscoin.org/api?module=account&action=balance&address=0xA738a563F9ecb55e0b2245D1e9E380f0fE455ea1"
-    )
-    .catch((err) => console.log(err));
+    ).then((resp) => resp.json()),
+  ]);
+  const nevmSupply = explorerData;
 
-  let nevmAddContractSupply = nevmAdd.data.result;
+  console.log({ nevmSupply, nevmAdd });
+
+  const nevmAddContractSupply = nevmAdd.result;
 
   console.log({ nevmAddContractSupply });
 
-  let largeNumber = 1000000000000000000;
-  let nevmAddContractFinal = nevmAddContractSupply / largeNumber;
+  const largeNumber = 1000000000000000000;
+  const nevmAddContractFinal = nevmAddContractSupply / largeNumber;
 
   // Get total NEVM + UTXO Supply
-  let cmcSupply = nevmSupply - nevmAddContractFinal + utxoSupply;
+  const cmcSupply = nevmSupply - nevmAddContractFinal + utxoSupply;
   return cmcSupply;
 };
 
 app.get("/totalsupply", async (req, res) => {
-  const totalSupply = await getSupply();
-  res.send(totalSupply);
+  try {
+    const totalSupply = await getSupply();
+    res.set("Content-Type", "text/html");
+    res.status(200).send(`${totalSupply}`);
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
 });
 
 app.get("/health", async (req, res) => {
@@ -54,5 +60,5 @@ app.get("/health", async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`Syscoin Info app listening on port ${port}`);
 });
