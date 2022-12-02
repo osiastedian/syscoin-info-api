@@ -19,12 +19,6 @@ const getSupply = async () => {
   let utxoSupply = supplyInfo.total_amount;
   console.log({ utxoSupply });
 
-  // Get SYSX Supply
-  let sysAsset = `123456`;
-  let assetInfo = await rpcServices(client.callRpc).assetInfo(sysAsset).call();
-  let sysxSupply = assetInfo.total_supply;
-  console.log({ sysxSupply });
-
   let explorerData = await axios
     .get("https://explorer.syscoin.org/api?module=stats&action=coinsupply")
     .catch((err) => console.log(err));
@@ -45,7 +39,7 @@ const getSupply = async () => {
   let nevmAddContractFinal = nevmAddContractSupply / largeNumber;
 
   // Get total NEVM + UTXO Supply
-  let cmcSupply = nevmSupply - nevmAddContractFinal + utxoSupply + sysxSupply;
+  let cmcSupply = nevmSupply - nevmAddContractFinal + utxoSupply;
   return cmcSupply;
 };
 
