@@ -16,6 +16,8 @@ const express = require("express");
 const app = express();
 const port = 3000;
 
+const SUBSCRIBE_BLOCK_MESSAGE_ID = "2";
+
 let lastRecordedTotalSupply = {
   value: undefined,
   recordedAt: undefined,
@@ -71,11 +73,11 @@ app.get("/health", async (req, res) => {
 
 const handleSocketMessage = (message) => {
   console.log("Websocket Message", { message });
-  switch (message.method) {
-    case "subscribeAddresses":
+  switch (message.id) {
+    case SUBSCRIBE_BLOCK_MESSAGE_ID:
       {
         recordTotalSupply().then((newTotalSupply) => {
-          console.log({ recordTotalSupply });
+          console.log({ newTotalSupply, ...message.data });
         });
       }
       break;
