@@ -32,7 +32,7 @@ sigterm_handler() {
 
 ## Setup signal trap
 # on callback execute the specified handler
-trap 'sigterm_handler' SIGTERM
+trap 'sigterm_handler' INT TERM
 
 ## Initialization
 pre_execution_handler
