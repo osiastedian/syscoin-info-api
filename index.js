@@ -64,10 +64,10 @@ app.get("/health", async (req, res) => {
 });
 
 const handleSocketMessage = (message) => {
+  console.log("Websocket Message", { message });
   switch (message.method) {
     case "subscribeAddresses":
       {
-        console.log("subscribeAddresses", { message });
         recordTotalSupply();
       }
       break;
@@ -87,18 +87,31 @@ const runNewBlockSubscription = () => {
         const messageJson = JSON.parse(message.utf8Data);
         handleSocketMessage(messageJson);
       }
+      return false;
     });
-    connection.on("close", () => {
-      console.log("Websocket connection closed");
+    connection.on("close", (close) => {
+      console.log("Websocket connection closed", close);
     });
 
     connection.on("error", (error) => {
       console.log("Websocket connection error", { error });
     });
 
-    connection.sendUTF(
-      JSON.stringify({ id: 1, method: "subscribeAddresses", params: [] })
-    );
+    setTimeout(() => {
+      connection.send(
+        JSON.stringify({ id: "1", method: "getInfo", params: {} })
+      );
+
+      connection.send(
+        JSON.stringify({ id: "2", method: "subscribeNewBlock", params: {} })
+      );
+      let pingCount = 0;
+      setInterval(() => {
+        connection.send(
+          JSON.stringify({ id: `${3 + pingCount++}`, method: "ping", params: {} })
+        );
+      }, 1000);
+    }, 3000);
   });
   wsClient.connect("wss://blockbook.elint.services/websocket");
 };
