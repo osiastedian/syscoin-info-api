@@ -43,9 +43,10 @@ const getSupply = async () => {
 };
 
 const recordTotalSupply = () => {
-  getSupply().then((supply) => {
+  return getSupply().then((supply) => {
     lastRecordedTotalSupply.value = supply;
     lastRecordedTotalSupply.recordedAt = new Date().toUTCString();
+    return lastRecordedTotalSupply;
   });
 };
 
@@ -58,6 +59,11 @@ app.get("/totalsupply", async (req, res) => {
   }
 });
 
+app.get("/triggerRecordSupply", async (req, res) => {
+  const newRecordedSupply = await recordTotalSupply();
+  res.status(200).send(JSON.stringify(newRecordedSupply));
+});
+
 app.get("/health", async (req, res) => {
   console.log("Health check", new Date());
   res.send("OK");
@@ -68,7 +74,9 @@ const handleSocketMessage = (message) => {
   switch (message.method) {
     case "subscribeAddresses":
       {
-        recordTotalSupply();
+        recordTotalSupply().then((newTotalSupply) => {
+          console.log({ recordTotalSupply });
+        });
       }
       break;
   }
@@ -108,7 +116,11 @@ const runNewBlockSubscription = () => {
       let pingCount = 0;
       setInterval(() => {
         connection.send(
-          JSON.stringify({ id: `${3 + pingCount++}`, method: "ping", params: {} })
+          JSON.stringify({
+            id: `${3 + pingCount++}`,
+            method: "ping",
+            params: {},
+          })
         );
       }, 1000);
     }, 3000);
