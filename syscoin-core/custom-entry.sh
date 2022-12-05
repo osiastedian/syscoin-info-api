@@ -1,9 +1,5 @@
 #!/bin/sh
 
-## Redirecting Filehanders
-ln -sf /proc/$$/fd/1 /log/stdout.log
-ln -sf /proc/$$/fd/2 /log/stderr.log
-
 ## Pre execution handler
 pre_execution_handler() {
     ## Pre Execution
@@ -43,7 +39,7 @@ pre_execution_handler
 
 ## Start Process
 # run process in background and record PID
-"$@" >/log/stdout.log 2>/log/stderr.log &
+"$@" &
 pid="$!"
 # Application can log to stdout/stderr, /log/stdout.log or /log/stderr.log
 
