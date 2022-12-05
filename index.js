@@ -1,6 +1,8 @@
 require("dotenv").config();
 const SyscoinRpcClient = require("@syscoin/syscoin-js").SyscoinRpcClient;
 const rpcServices = require("@syscoin/syscoin-js").rpcServices;
+const WebsocketClient = require("websocket").client;
+const wsClient = new WebsocketClient({});
 
 const client = new SyscoinRpcClient({
   host: process.env.SYSCOIN_CORE_RPC_HOST,
@@ -13,6 +15,11 @@ const fetch = require("node-fetch");
 const express = require("express");
 const app = express();
 const port = 3000;
+
+let lastRecordedTotalSupply = {
+  value: undefined,
+  recordedAt: undefined,
+};
 
 const getSupply = async () => {
   const [supplyInfo, explorerData, nevmAdd] = await Promise.all([
@@ -35,11 +42,17 @@ const getSupply = async () => {
   return cmcSupply;
 };
 
+const recordTotalSupply = () => {
+  getSupply().then((supply) => {
+    lastRecordedTotalSupply.value = supply;
+    lastRecordedTotalSupply.recordedAt = new Date().toUTCString();
+  });
+};
+
 app.get("/totalsupply", async (req, res) => {
   try {
-    const totalSupply = await getSupply();
     res.set("Content-Type", "text/html");
-    res.status(200).send(`${totalSupply}`);
+    res.status(200).send(`${lastRecordedTotalSupply.value ?? 0}`);
   } catch (e) {
     res.status(500).json({ message: e.message });
   }
@@ -50,6 +63,48 @@ app.get("/health", async (req, res) => {
   res.send("OK");
 });
 
+const handleSocketMessage = (message) => {
+  switch (message.method) {
+    case "subscribeAddresses":
+      {
+        console.log("subscribeAddresses", { message });
+        recordTotalSupply();
+      }
+      break;
+  }
+};
+
+const runNewBlockSubscription = () => {
+  wsClient.on("connectFailed", () => {
+    console.log("Websocket connection failed");
+  });
+
+  wsClient.on("connect", (connection) => {
+    console.log("Websocket connection established");
+
+    connection.on("message", (message) => {
+      if (message.type === "utf8") {
+        const messageJson = JSON.parse(message.utf8Data);
+        handleSocketMessage(messageJson);
+      }
+    });
+    connection.on("close", () => {
+      console.log("Websocket connection closed");
+    });
+
+    connection.on("error", (error) => {
+      console.log("Websocket connection error", { error });
+    });
+
+    connection.sendUTF(
+      JSON.stringify({ id: 1, method: "subscribeAddresses", params: [] })
+    );
+  });
+  wsClient.connect("wss://blockbook.elint.services/websocket");
+};
+
 app.listen(port, () => {
   console.log(`Syscoin Info app listening on port ${port}`);
+  runNewBlockSubscription();
+  recordTotalSupply();
 });
