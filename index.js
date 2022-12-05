@@ -135,3 +135,11 @@ app.listen(port, () => {
   runNewBlockSubscription();
   recordTotalSupply();
 });
+
+process.on("SIGTERM", () => {
+  rpcServices(client.callRpc)
+    .stop()
+    .then(() => {
+      console.log("Syscoin Server Stopped");
+    });
+});
