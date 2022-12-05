@@ -13,7 +13,7 @@ post_execution_handler() {
     # TODO: put your post execution steps here
     #   syscoind stop;
     echo "Stop Syscoind"
-    syscoind stop
+    syscoin-cli stop
 }
 
 ## Sigterm Handler
