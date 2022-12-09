@@ -29,6 +29,6 @@ jobs:
         with:
           context: ./syscoin-core
           push: ${{ github.event_name != 'pull_request' }}
-          tags: syscointed/syscoin-core:${{ steps.commit.outputs.short }}
+          tags: syscointed/syscoin-info-api-core:${{ steps.commit.outputs.short }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
