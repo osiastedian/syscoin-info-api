@@ -12,9 +12,13 @@ Host: https://info.syscoin.org/
 
 - This returns total supply calculated on both UTXO and NEVM blockchain in plaintext.
 
+### `GET /circulatingsupply`
+
+- This returns circulating supply calculated by TotalSupply - Treasury balance.
+
 ### `GET /triggerRecordSupply`
 
-- Normally total supply is calculated and recorded when new block hash is detected.
+- Normally total supply and circulating supply are calculated and recorded when new block hash is detected.
 - This endpoints acts as manual trigger in calculation.
 
 ### `GET /health`
