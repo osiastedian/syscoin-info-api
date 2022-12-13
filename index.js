@@ -77,15 +77,15 @@ const recordCirculatingSupply = () => {
 };
 
 const handleSocketMessage = (message) => {
-  console.log("Websocket Message", { message });
   switch (message.id) {
     case SUBSCRIBE_BLOCK_MESSAGE_ID:
       {
+        console.log("Websocket Message", { message });
         recordTotalSupply()
           .then((newTotalSupply) => {
             console.log({ newTotalSupply, ...message.data });
+            return recordCirculatingSupply();
           })
-          .then(() => recordCirculatingSupply())
           .then((newCirculatingSupply) => {
             console.log({ newCirculatingSupply, ...message.data });
           });
