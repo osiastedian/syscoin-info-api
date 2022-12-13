@@ -152,7 +152,10 @@ app.get("/circulatingsupply", (req, res) => {
 
 app.get("/triggerRecordSupply", async (req, res) => {
   const newRecordedSupply = await recordTotalSupply();
-  res.status(200).send(JSON.stringify(newRecordedSupply));
+  const newCirculatingSupply = await recordCirculatingSupply();
+  res
+    .status(200)
+    .send(JSON.stringify({ newRecordedSupply, newCirculatingSupply }));
 });
 
 app.get("/health", async (req, res) => {
