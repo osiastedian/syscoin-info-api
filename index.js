@@ -22,6 +22,11 @@ let lastRecordedTotalSupply = {
   value: undefined,
   recordedAt: undefined,
 };
+let lastRecordedCirculatingSupply = {
+  value: undefined,
+  recordedAt: undefined,
+};
+const largeNumber = 1000000000000000000;
 
 const getSupply = async () => {
   const [supplyInfo, explorerData, nevmAdd] = await Promise.all([
@@ -36,12 +41,23 @@ const getSupply = async () => {
   const utxoSupply = supplyInfo.total_amount;
   const nevmSupply = explorerData;
   const nevmAddContractSupply = nevmAdd.result;
-  const largeNumber = 1000000000000000000;
+
   const nevmContract = nevmAddContractSupply / largeNumber;
 
   console.log({ utxoSupply, nevmSupply, nevmContract });
   const cmcSupply = nevmSupply - nevmContract + utxoSupply;
   return cmcSupply;
+};
+
+const getCirculatingSupply = async () => {
+  if (lastRecordedTotalSupply.recordedAt === undefined) {
+    return 0;
+  }
+  const treasuryBalance = await fetch(
+    "https://explorer.syscoin.org/api?module=account&action=balance&address=0x94EBc5528bE5Ec6914B0d7366aF68aA4b6cB2696"
+  ).then((resp) => resp.json());
+  const balanceInEther = treasuryBalance.result / largeNumber;
+  return lastRecordedTotalSupply.value - balanceInEther;
 };
 
 const recordTotalSupply = () => {
@@ -52,33 +68,27 @@ const recordTotalSupply = () => {
   });
 };
 
-app.get("/totalsupply", async (req, res) => {
-  try {
-    res.set("Content-Type", "text/html");
-    res.status(200).send(`${lastRecordedTotalSupply.value ?? 0}`);
-  } catch (e) {
-    res.status(500).json({ message: e.message });
-  }
-});
-
-app.get("/triggerRecordSupply", async (req, res) => {
-  const newRecordedSupply = await recordTotalSupply();
-  res.status(200).send(JSON.stringify(newRecordedSupply));
-});
-
-app.get("/health", async (req, res) => {
-  console.log("Health check", new Date());
-  res.send("OK");
-});
+const recordCirculatingSupply = () => {
+  return getCirculatingSupply().then((supply) => {
+    lastRecordedCirculatingSupply.recordedAt = new Date().toUTCString();
+    lastRecordedCirculatingSupply.value = supply;
+    return lastRecordedCirculatingSupply;
+  });
+};
 
 const handleSocketMessage = (message) => {
   console.log("Websocket Message", { message });
   switch (message.id) {
     case SUBSCRIBE_BLOCK_MESSAGE_ID:
       {
-        recordTotalSupply().then((newTotalSupply) => {
-          console.log({ newTotalSupply, ...message.data });
-        });
+        recordTotalSupply()
+          .then((newTotalSupply) => {
+            console.log({ newTotalSupply, ...message.data });
+          })
+          .then(() => recordCirculatingSupply())
+          .then((newCirculatingSupply) => {
+            console.log({ newCirculatingSupply, ...message.data });
+          });
       }
       break;
   }
@@ -130,10 +140,30 @@ const runNewBlockSubscription = () => {
   wsClient.connect("wss://blockbook.elint.services/websocket");
 };
 
+app.get("/totalsupply", (req, res) => {
+  res.set("Content-Type", "text/html");
+  res.status(200).send(`${lastRecordedTotalSupply.value ?? 0}`);
+});
+
+app.get("/circulatingsupply", (req, res) => {
+  res.set("Content-Type", "text/html");
+  res.status(200).send(`${lastRecordedCirculatingSupply.value ?? 0}`);
+});
+
+app.get("/triggerRecordSupply", async (req, res) => {
+  const newRecordedSupply = await recordTotalSupply();
+  res.status(200).send(JSON.stringify(newRecordedSupply));
+});
+
+app.get("/health", async (req, res) => {
+  console.log("Health check", new Date());
+  res.send("OK");
+});
+
 app.listen(port, () => {
   console.log(`Syscoin Info app listening on port ${port}`);
   runNewBlockSubscription();
-  recordTotalSupply();
+  recordTotalSupply().then(() => recordCirculatingSupply());
 });
 
 process.on("SIGTERM", () => {
